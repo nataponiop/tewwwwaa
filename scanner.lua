@@ -63,7 +63,7 @@ AddLine("\n[3] SCRIPTS FOUND")
 AddLine("----------------------------------")
 local scriptList = {}
 local function ScanScripts(parent)
-    if not parent then return end -- ป้องกันข้อผิดพลาดตรงนี้ครับ
+    if not parent then return end
     for _, child in pairs(parent:GetChildren()) do
         if child:IsA("LuaSourceContainer") then
             local entry = string.format("NAME: %-40s | PATH: %s", child.Name, child:GetFullName())
