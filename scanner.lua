@@ -1,5 +1,5 @@
--- SCANNER SCRIPT - ROBLOX DATA EXTRACTOR
--- Version: 1.0
+-- SCANNER SCRIPT - WITH EXPORT
+-- Version: 1.1
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -7,60 +7,66 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterPlayerScripts = game:GetService("StarterPlayerScripts")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local ExportData = {}
+local function AddLine(text)
+    table.insert(ExportData, text)
+    print(text)
+end
+
 print("==================================")
 print("STARTING SCAN...")
 print("==================================")
 
--- [1] SCAN ALL OBJECTS IN WORKSPACE
-print("\n[1] ALL OBJECTS & ITEMS:")
+AddLine("==================================")
+AddLine("SCAN REPORT")
+AddLine("GENERATED: " .. os.date("%Y-%m-%d %H:%M:%S"))
+AddLine("==================================")
+
+-- [1] OBJECTS
+AddLine("\n[1] OBJECTS & ITEMS")
+AddLine("----------------------------------")
 local itemList = {}
 for _, obj in pairs(Workspace:GetDescendants()) do
     if obj:IsA("BasePart") or obj:IsA("Model") then
         local pos = "N/A"
         if obj:IsA("BasePart") then pos = tostring(obj.Position) end
-        local data = {
-            Name = obj.Name,
-            Class = obj.ClassName,
-            Path = obj:GetFullName(),
-            Position = pos
-        }
-        table.insert(itemList, data)
-        print("→ " .. data.Name .. " | " .. data.Class .. " | " .. data.Path)
+        local entry = string.format("NAME: %-30s | CLASS: %-20s | POS: %s", obj.Name, obj.ClassName, pos)
+        table.insert(itemList, entry)
+        AddLine(entry)
     end
 end
-print("FOUND: " .. #itemList .. " ITEMS")
+AddLine("----------------------------------")
+AddLine("TOTAL OBJECTS: " .. #itemList)
 
--- [2] SCAN REMOTES & EVENTS
-print("\n[2] REMOTES & EVENTS:")
+-- [2] REMOTES
+AddLine("\n[2] REMOTES & EVENTS")
+AddLine("----------------------------------")
 local remoteList = {}
 local function ScanRemotes(parent)
     for _, child in pairs(parent:GetChildren()) do
         if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") or child:IsA("BindableEvent") then
-            table.insert(remoteList, {
-                Name = child.Name,
-                Type = child.ClassName,
-                Path = child:GetFullName()
-            })
-            print("→ " .. child.Name .. " | " .. child.ClassName .. " | " .. child:GetFullName())
+            local entry = string.format("NAME: %-35s | TYPE: %-20s | PATH: %s", child.Name, child.ClassName, child:GetFullName())
+            table.insert(remoteList, entry)
+            AddLine(entry)
         end
         task.spawn(ScanRemotes, child)
     end
 end
 ScanRemotes(ReplicatedStorage)
 ScanRemotes(ServerScriptService)
-print("FOUND: " .. #remoteList .. " REMOTES")
+AddLine("----------------------------------")
+AddLine("TOTAL REMOTES: " .. #remoteList)
 
--- [3] SCAN SCRIPTS
-print("\n[3] SCRIPTS FOUND:")
+-- [3] SCRIPTS
+AddLine("\n[3] SCRIPTS FOUND")
+AddLine("----------------------------------")
 local scriptList = {}
 local function ScanScripts(parent)
     for _, child in pairs(parent:GetChildren()) do
         if child:IsA("LuaSourceContainer") then
-            table.insert(scriptList, {
-                Name = child.Name,
-                Path = child:GetFullName()
-            })
-            print("→ " .. child.Name .. " | " .. child:GetFullName())
+            local entry = string.format("NAME: %-35s | PATH: %s", child.Name, child:GetFullName())
+            table.insert(scriptList, entry)
+            AddLine(entry)
         end
         task.spawn(ScanScripts, child)
     end
@@ -68,25 +74,30 @@ end
 ScanScripts(StarterPlayerScripts)
 ScanScripts(ReplicatedStorage)
 ScanScripts(Workspace)
-print("FOUND: " .. #scriptList .. " SCRIPTS")
+AddLine("----------------------------------")
+AddLine("TOTAL SCRIPTS: " .. #scriptList)
 
--- [4] PLAYER INFO
-print("\n[4] PLAYER DATA:")
+-- [4] PLAYER
+AddLine("\n[4] PLAYER INFO")
+AddLine("----------------------------------")
 local Me = Players.LocalPlayer
-print("Name: " .. Me.Name)
-print("UserID: " .. Me.UserId)
+AddLine("Name: " .. Me.Name)
+AddLine("UserID: " .. Me.UserId)
 if Me.Character then
-    print("Character: LOADED")
+    AddLine("Character: LOADED")
     local Root = Me.Character:FindFirstChild("HumanoidRootPart")
-    if Root then print("Position: " .. tostring(Root.Position)) end
+    if Root then AddLine("Position: " .. tostring(Root.Position)) end
 else
-    print("Character: NOT LOADED")
+    AddLine("Character: NOT LOADED")
 end
 
--- FINAL SUMMARY
-print("\n==================================")
-print("SCAN COMPLETE")
-print("TOTAL OBJECTS: " .. #itemList)
-print("TOTAL REMOTES: " .. #remoteList)
-print("TOTAL SCRIPTS: " .. #scriptList)
-print("==================================")
+-- EXPORT BLOCK
+AddLine("\n==================================")
+AddLine("=== COPY EVERYTHING BELOW ===")
+AddLine("==================================")
+local FullExport = table.concat(ExportData, "\n")
+AddLine(FullExport)
+AddLine("==================================")
+AddLine("SCAN COMPLETE! SAVE & SHARE")
+AddLine("==================================")
+print("\n💡 Copy all text above → Save to notepad → Send here")
