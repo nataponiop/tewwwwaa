@@ -1,5 +1,5 @@
--- SCANNER SCRIPT - WITH EXPORT
--- Version: 1.1
+-- SCANNER SCRIPT - FIXED VERSION
+-- Version: 1.2
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -22,7 +22,7 @@ AddLine("SCAN REPORT")
 AddLine("GENERATED: " .. os.date("%Y-%m-%d %H:%M:%S"))
 AddLine("==================================")
 
--- [1] OBJECTS
+-- [1] OBJECTS IN WORKSPACE
 AddLine("\n[1] OBJECTS & ITEMS")
 AddLine("----------------------------------")
 local itemList = {}
@@ -30,7 +30,7 @@ for _, obj in pairs(Workspace:GetDescendants()) do
     if obj:IsA("BasePart") or obj:IsA("Model") then
         local pos = "N/A"
         if obj:IsA("BasePart") then pos = tostring(obj.Position) end
-        local entry = string.format("NAME: %-30s | CLASS: %-20s | POS: %s", obj.Name, obj.ClassName, pos)
+        local entry = string.format("NAME: %-35s | CLASS: %-20s | POS: %s", obj.Name, obj.ClassName, pos)
         table.insert(itemList, entry)
         AddLine(entry)
     end
@@ -38,14 +38,15 @@ end
 AddLine("----------------------------------")
 AddLine("TOTAL OBJECTS: " .. #itemList)
 
--- [2] REMOTES
+-- [2] REMOTES & EVENTS
 AddLine("\n[2] REMOTES & EVENTS")
 AddLine("----------------------------------")
 local remoteList = {}
 local function ScanRemotes(parent)
+    if not parent then return end
     for _, child in pairs(parent:GetChildren()) do
         if child:IsA("RemoteEvent") or child:IsA("RemoteFunction") or child:IsA("BindableEvent") then
-            local entry = string.format("NAME: %-35s | TYPE: %-20s | PATH: %s", child.Name, child.ClassName, child:GetFullName())
+            local entry = string.format("NAME: %-40s | TYPE: %-20s | PATH: %s", child.Name, child.ClassName, child:GetFullName())
             table.insert(remoteList, entry)
             AddLine(entry)
         end
@@ -57,14 +58,15 @@ ScanRemotes(ServerScriptService)
 AddLine("----------------------------------")
 AddLine("TOTAL REMOTES: " .. #remoteList)
 
--- [3] SCRIPTS
+-- [3] SCRIPTS - WITH SAFETY CHECK ✅
 AddLine("\n[3] SCRIPTS FOUND")
 AddLine("----------------------------------")
 local scriptList = {}
 local function ScanScripts(parent)
+    if not parent then return end -- ป้องกันข้อผิดพลาดตรงนี้ครับ
     for _, child in pairs(parent:GetChildren()) do
         if child:IsA("LuaSourceContainer") then
-            local entry = string.format("NAME: %-35s | PATH: %s", child.Name, child:GetFullName())
+            local entry = string.format("NAME: %-40s | PATH: %s", child.Name, child:GetFullName())
             table.insert(scriptList, entry)
             AddLine(entry)
         end
@@ -77,7 +79,7 @@ ScanScripts(Workspace)
 AddLine("----------------------------------")
 AddLine("TOTAL SCRIPTS: " .. #scriptList)
 
--- [4] PLAYER
+-- [4] PLAYER INFO
 AddLine("\n[4] PLAYER INFO")
 AddLine("----------------------------------")
 local Me = Players.LocalPlayer
@@ -100,4 +102,4 @@ AddLine(FullExport)
 AddLine("==================================")
 AddLine("SCAN COMPLETE! SAVE & SHARE")
 AddLine("==================================")
-print("\n💡 Copy all text above → Save to notepad → Send here")
+print("\n💡 Copy all text → Save to notepad → Send here")
